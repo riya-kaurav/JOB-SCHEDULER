@@ -2,8 +2,6 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import pool  from '../../db/index.js';
 
-
-
 const registerSchema = z.object({
   tenantName: z.string().min(3),
   email: z.string().email(),
@@ -15,11 +13,11 @@ export async function registerHandler(request, reply) {
 
   try {
     //  Validate input
-    const { tenantName, email, password } =
+    const { tenantName, email, password_hash } =
       registerSchema.parse(request.body);
 
     //  Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password_hash, 10);
 
     //  Start transaction
     await client.query('BEGIN');
@@ -36,7 +34,7 @@ export async function registerHandler(request, reply) {
 
     //  Insert admin user
     const userRes = await client.query(
-      `INSERT INTO users (email, password, tenant_id, role)
+      `INSERT INTO users (email, password_hash, tenant_id, role)
        VALUES ($1, $2, $3, $4)
        RETURNING id, email, tenant_id, role`,
       [email, hashedPassword, tenant.id, 'ADMIN']
@@ -79,4 +77,79 @@ export async function registerHandler(request, reply) {
   } finally {
     client.release(); //  MUST
   }
+}
+
+// login handler
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+export async function loginHandler(request , reply) {
+  const client = await pool.connect();
+
+  try {
+    const { email , password} = loginSchema.parse(request .body);
+    const userRes = await client.query(
+      `SELECT id, email, password_hash, tenant_id, role
+       FROM users
+       WHERE email = $1`,
+      [email]
+    );
+
+    if(userRes.rows.length === 0) {
+      return reply.status(401).send({
+        error: 'Invalid email or password',
+      });
+    }
+
+    const user = userRes.rows[0];
+
+    // compare password
+    const isMatch = await bcrypt.compare(password , user.password_hash);
+
+    if(!isMatch) {
+      return reply.status(401).send({
+        error: 'Invalid email or password',
+      });
+    }
+
+    // generate JWT
+    const payload = {
+      userId: user.id ,
+      email : user.email,
+      tenantId : user.tenant_id,
+      role : user.role,
+    };
+
+    const accessToken = request.server.jwt.sign(payload, {
+      expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+    });
+
+    const refreshToken = request.server.jwt.sign(payload, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    });
+
+    return reply.status(200).send({
+      accessToken,
+      refreshToken,
+    });
+  }
+    catch (err) {
+      if (err instanceof z.ZodError) {
+        return reply.status(400).send({
+          error: 'Validation failed',
+          details: err.errors
+        });
+      }
+
+      console.error(err);
+
+      return reply.status(400).send({
+        error: err.message,
+      });
+    }
+    finally {
+      client.release();
+    }
 }
