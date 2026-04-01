@@ -13,11 +13,12 @@ export async function registerHandler(request, reply) {
 
   try {
     //  Validate input
-    const { tenantName, email, password_hash } =
+    const { tenantName, email, password } =
       registerSchema.parse(request.body);
+      // console.log('DEBUG password:', password, typeof password);
 
     //  Hash password
-    const hashedPassword = await bcrypt.hash(password_hash, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     //  Start transaction
     await client.query('BEGIN');
@@ -75,7 +76,7 @@ export async function registerHandler(request, reply) {
     });
 
   } finally {
-    client.release(); //  MUST
+    client.release(); 
   }
 }
 
@@ -86,11 +87,11 @@ const loginSchema = z.object({
 });
 
 export async function loginHandler(request , reply) {
-  const client = await pool.connect();
+  // const client = await pool.connect();
 
   try {
     const { email , password} = loginSchema.parse(request .body);
-    const userRes = await client.query(
+    const userRes = await pool.query(
       `SELECT id, email, password_hash, tenant_id, role
        FROM users
        WHERE email = $1`,
@@ -117,7 +118,7 @@ export async function loginHandler(request , reply) {
     // generate JWT
     const payload = {
       userId: user.id ,
-      email : user.email,
+      // email : user.email, best practice to not include email in token payload
       tenantId : user.tenant_id,
       role : user.role,
     };
@@ -149,7 +150,7 @@ export async function loginHandler(request , reply) {
         error: err.message,
       });
     }
-    finally {
-      client.release();
-    }
+    // finally {
+    //   client.release();
+    // }
 }
