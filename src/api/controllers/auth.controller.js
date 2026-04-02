@@ -87,8 +87,7 @@ const loginSchema = z.object({
 });
 
 export async function loginHandler(request , reply) {
-  // const client = await pool.connect();
-
+  
   try {
     const { email , password} = loginSchema.parse(request .body);
     const userRes = await pool.query(
@@ -150,7 +149,5 @@ export async function loginHandler(request , reply) {
         error: err.message,
       });
     }
-    // finally {
-    //   client.release();
-    // }
+    
 }
