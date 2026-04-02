@@ -201,3 +201,108 @@ export async function createApiKey(request, reply) {
     });
   }
 }
+
+export async function logoutHandler(request, reply) {
+  const { refreshToken } = request.body;
+
+  if (!refreshToken) {
+    return reply.code(400).send({
+      error: 'Refresh token required'
+    });
+  }
+
+  try {
+    //  1. Verify token (IMPORTANT)
+    const decoded = request.server.jwt.verify(refreshToken);
+
+    //  2. Calculate TTL
+    const exp = decoded.exp;
+    const now = Math.floor(Date.now() / 1000);
+    const ttl = exp - now;
+
+    if (ttl <= 0) {
+      return reply.code(400).send({
+        error: 'Token already expired'
+      });
+    }
+
+    // 3. Store in Redis blacklist
+    const key = `blacklist:${refreshToken}`;
+
+    await request.server.redis.set(key, 'true', 'EX', ttl);
+
+    //  4. Success response
+    return reply.code(200).send({
+      message: 'Logged out successfully'
+    });
+
+  } catch (err) {
+    return reply.code(401).send({
+      error: 'Invalid or expired refresh token'
+    });
+  }
+}
+
+export async function refreshHandler(request, reply) {
+  const { refreshToken } = request.body;
+
+  if (!refreshToken) {
+    return reply.code(400).send({
+      error: 'Refresh token required'
+    });
+  }
+
+  try {
+    //  1. Check if token is blacklisted
+    const isBlacklisted = await request.server.redis.get(
+      `blacklist:${refreshToken}`
+    );
+
+    if (isBlacklisted) {
+      return reply.code(401).send({
+        error: 'Token is blacklisted'
+      });
+    }
+
+    //  2. Verify token
+    const decoded = request.server.jwt.verify(refreshToken);
+
+    const { userId, tenantId, role, exp } = decoded;
+
+    // 3. Calculate TTL for old token
+    const now = Math.floor(Date.now() / 1000);
+    const ttl = exp - now;
+
+    if (ttl > 0) {
+      //  4. Blacklist old refresh token
+      await request.server.redis.set(
+        `blacklist:${refreshToken}`,
+        'true',
+        'EX',
+        ttl
+      );
+    }
+
+    //  5. Generate new tokens
+    const payload = { userId, tenantId, role };
+
+    const newAccessToken = request.server.jwt.sign(payload, {
+      expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+    });
+
+    const newRefreshToken = request.server.jwt.sign(payload, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    });
+
+    //  6. Return new tokens
+    return reply.send({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    });
+
+  } catch (err) {
+    return reply.code(401).send({
+      error: 'Invalid or expired refresh token'
+    });
+  }
+}

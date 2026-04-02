@@ -4,11 +4,13 @@ dotenv.config();
 import Fastify from 'fastify';
 import authRoutes from './api/routes/auth.routes.js';
 import fastifyJwt from '@fastify/jwt';
+import  redis from './cache/redis.js';
+
 
 
 const fastify = Fastify({ logger: true });
 
-
+fastify.decorate('redis', redis)
 fastify.get('/health', async () => {
   return { status: 'ok' };
 });
@@ -16,6 +18,8 @@ fastify.get('/health', async () => {
 fastify.register(fastifyJwt, {
   secret: process.env.JWT_SECRET,
 });
+
+
 
 fastify.register(authRoutes, { prefix: '/api/v1/auth' });
 
