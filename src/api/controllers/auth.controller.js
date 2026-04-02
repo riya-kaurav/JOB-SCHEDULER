@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import pool  from '../../db/index.js';
+import crypto from 'crypto';
 
 const registerSchema = z.object({
   tenantName: z.string().min(3),
@@ -150,4 +151,53 @@ export async function loginHandler(request , reply) {
       });
     }
     
+}
+export async function createApiKey(request, reply) {
+  
+  try {
+    // 1. Ensure JWT-only access
+    if (!request.userId) {
+      return reply.code(401).send({
+        error: 'This endpoint requires JWT authentication'
+      });
+    }
+
+    // 2. Generate raw API key
+    const rawKey = crypto.randomBytes(32).toString('hex');
+
+    // 3. Hash the key
+    const keyHash = crypto
+      .createHash('sha256')
+      .update(rawKey)
+      .digest('hex');
+
+    // 4. Get tenant + optional name
+    const tenantId = request.tenantId;
+    const { name } = request.body || {};
+
+    // 5. Store in DB
+    const result = await pool.query(
+      `INSERT INTO api_keys (tenant_id, key_hash, name)
+       VALUES ($1, $2, $3)
+       RETURNING id, name`,
+      [tenantId, keyHash, name || null]
+    );
+
+    const apiKey = result.rows[0];
+
+    // 6. Return raw key ONCE
+    return reply.status(201).send({
+      id: apiKey.id,
+      name: apiKey.name,
+      key: rawKey,
+      warning: 'Store this key securely. It will not be shown again.'
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return reply.status(500).send({
+      error: 'Failed to create API key'
+    });
+  }
 }

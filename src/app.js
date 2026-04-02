@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 import Fastify from 'fastify';
 import authRoutes from './api/routes/auth.routes.js';
 import fastifyJwt from '@fastify/jwt';

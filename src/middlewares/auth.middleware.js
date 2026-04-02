@@ -1,7 +1,8 @@
 import crypto from 'crypto'
-import { query } from '../../db/index.js' // adjust path if needed
+import { query } from '../db/index.js' // adjust path if needed
 
 async function authMiddleware(request, reply) {
+  
   try {
     // 1. Check API key first
     const apiKey = request.headers['x-api-key']
@@ -42,13 +43,18 @@ async function authMiddleware(request, reply) {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
-        await request.jwtVerify()
+        // await request.jwtVerify()
 
-           const { userId, tenantId, role } = request.user
+        //    const { userId, tenantId, role } = request.user
 
-             request.userId = userId
-             request.tenantId = tenantId
-             request.role = role
+        //      request.userId =userId
+        //      request.tenantId = tenantId
+        //      request.role = role
+        const decoded = await request.jwtVerify();
+
+        request.userId = decoded.userId;
+        request.tenantId = decoded.tenantId;
+        request.role = decoded.role;
 
                return
 
