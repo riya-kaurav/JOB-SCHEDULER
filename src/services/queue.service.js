@@ -19,7 +19,13 @@ export async function enqueueJob(job) {
     ? Math.max(new Date(job.scheduled_at) - Date.now(), 0)
     : 0;
 
-  return await jobQueue.add(job.type, job, {
+  return await jobQueue.add(job.type, // "EMAIL" / "REPORT"
+  {
+    dbJobId: job.id,        //  required for worker
+    payload: job.payload, 
+    tenantId: job.tenant_id
+  },
+     {
     priority: priorityMap[job.priority] ?? 5,
     delay,
     jobId: job.id // idempotency
