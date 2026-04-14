@@ -71,3 +71,160 @@ export async function createJobHandler(request, reply) {
     });
   }
 }
+
+
+// GET /jobs (list + pagination)
+
+export const getJobsHandler = async (request, reply) => {
+  try {
+    const tenantId = request.tenantId;
+
+    const page = parseInt(request.query.page) || 1;
+    const limit = parseInt(request.query.limit) || 10;
+    const status = request.query.status;
+
+    const offset = (page - 1) * limit;
+
+    let query = `
+      SELECT *
+      FROM jobs
+      WHERE tenant_id = $1
+    `;
+
+    const values = [tenantId];
+
+    if (status) {
+      query += ` AND status = $2`;
+      values.push(status.toUpperCase());
+    }
+
+    query += `
+      ORDER BY created_at DESC
+      LIMIT $${values.length + 1}
+      OFFSET $${values.length + 2}
+    `;
+
+    values.push(limit, offset);
+
+    const { rows } = await request.server.db.query(query, values);
+
+    // total count
+    let countQuery = `SELECT COUNT(*) FROM jobs WHERE tenant_id = $1`;
+    const countValues = [tenantId];
+
+    if (status) {
+      countQuery += ` AND status = $2`;
+      countValues.push(status.toUpperCase());
+    }
+
+    const countResult = await request.server.db.query(
+      countQuery,
+      countValues
+    );
+
+    const total = parseInt(countResult.rows[0].count);
+
+    return reply.send({
+      data: rows,
+      total,
+      page,
+      limit,
+    });
+  } catch (err) {
+    request.log.error(err);
+    return reply.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+// GET /jobs/:id (detail + history)
+
+export const getJobByIdHandler = async (request, reply) => {
+  try {
+    const tenantId = request.tenantId;
+    const jobId = request.params.id;
+
+    // get job
+    const jobResult = await request.server.db.query(
+      `
+      SELECT *
+      FROM jobs
+      WHERE id = $1 AND tenant_id = $2
+      `,
+      [jobId, tenantId]
+    );
+
+    if (jobResult.rows.length === 0) {
+      return reply.status(404).send({ message: "Job not found" });
+    }
+
+    const job = jobResult.rows[0];
+
+    // get execution history
+    const execResult = await request.server.db.query(
+      `
+      SELECT attempt, status, error, duration_ms, executed_at
+      FROM job_executions
+      WHERE job_id = $1
+      ORDER BY executed_at DESC
+      `,
+      [jobId]
+    );
+
+    job.executions = execResult.rows;
+
+    return reply.send({ data: job });
+  } catch (err) {
+    request.log.error(err);
+    return reply.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+
+// DELETE /jobs/:id (cancel job)
+
+export const cancelJobHandler = async (request, reply) => {
+  try {
+    const tenantId = request.tenantId;
+    const jobId = request.params.id;
+
+    // check job
+    const result = await request.server.db.query(
+      `
+      SELECT status
+      FROM jobs
+      WHERE id = $1 AND tenant_id = $2
+      `,
+      [jobId, tenantId]
+    );
+
+    if (result.rows.length === 0) {
+      return reply.status(404).send({ message: "Job not found" });
+    }
+
+    const job = result.rows[0];
+
+    // only PENDING can be cancelled
+    if (job.status !== "PENDING") {
+      return reply.status(400).send({
+        message: `Cannot cancel job with status ${job.status}`,
+      });
+    }
+
+    // update status
+    await request.server.db.query(
+      `
+      UPDATE jobs
+      SET status = 'CANCELLED'
+      WHERE id = $1
+      `,
+      [jobId]
+    );
+
+    return reply.send({
+      message: "Job cancelled successfully",
+    });
+  } catch (err) {
+    request.log.error(err);
+    return reply.status(500).send({ message: "Internal Server Error" });
+  }
+};
