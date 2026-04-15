@@ -16,3 +16,6 @@ CREATE TABLE jobs (
 
 
 
+CREATE INDEX idx_jobs_tenant ON jobs(tenant_id);
+CREATE INDEX idx_jobs_status ON jobs(status);
+CREATE INDEX idx_jobs_created ON jobs(created_at DESC);
