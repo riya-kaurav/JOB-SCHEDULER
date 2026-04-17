@@ -1,17 +1,17 @@
 import { Queue } from 'bullmq';
-import  redis  from '../cache/redis.js';
+import redis from '../cache/redis.js';
 
-const jobQueue = new Queue('jobs', {
+export const jobQueue = new Queue('jobs', {
   connection: redis,
   defaultJobOptions: {
     attempts: 3,
-    backoff: { type: 'exponential', delay: 2000 }, // 2s, 4s, 8s
+    backoff: { type: 'exponential', delay: 2000 },
     removeOnComplete: false,
-    removeOnFail: false
+    removeOnFail: false,
   }
 });
 
-// Priority: 1=highest, 10=lowest (BullMQ convention)
+// Priority: 1=highest, 10=lowest
 export async function enqueueJob(job) {
   const priorityMap = { 1: 1, 2: 5, 3: 10 };
 
@@ -19,55 +19,17 @@ export async function enqueueJob(job) {
     ? Math.max(new Date(job.scheduled_at) - Date.now(), 0)
     : 0;
 
-  return await jobQueue.add(job.type, // "EMAIL" / "REPORT"
-  {
-    dbJobId: job.id,        //  required for worker
-    payload: job.payload, 
-    tenantId: job.tenant_id
-  },
-     {
-    priority: priorityMap[job.priority] ?? 5,
-    delay,
-    jobId: job.id // idempotency
-  });
+  return await jobQueue.add(
+    job.type,
+    {
+      dbJobId: job.id,
+      payload: job.payload,
+      tenantId: job.tenant_id
+    },
+    {
+      priority: priorityMap[job.priority] ?? 5,
+      delay,
+      jobId: job.id // idempotency
+    }
+  );
 }
-
-
-
-
-
-
-
-// import { Queue } from 'bullmq';
-// import redis from '../cache/redis.js';
-
-// const jobQueue = new Queue('jobs', {
-//   connection: redis,
-//   defaultJobOptions: {
-//     attempts: 3,
-//     backoff: { type: 'exponential', delay: 2000 }, // 2s, 4s, 8s
-//     removeOnComplete: false,
-//     removeOnFail: false
-//   }
-// });
-
-// // Priority: 1=highest, 10=lowest (BullMQ convention)
-// export async function enqueueJob(job) {
-//   const priorityMap = { 1: 1, 2: 5, 3: 10 };
-
-//   const delay = job.scheduled_at
-//     ? Math.max(new Date(job.scheduled_at) - Date.now(), 0)
-//     : 0;
-
-//   const result = await jobQueue.add(job.type, job, {
-//     priority: priorityMap[job.priority] ?? 5,
-//     delay,
-//     jobId: job.id // idempotency
-//   });
-
-//   // Get queue counts after enqueue
-//   const counts = await jobQueue.getJobCounts();
-//   console.log('Queue counts:', counts);
-
-//   return result;
-// }

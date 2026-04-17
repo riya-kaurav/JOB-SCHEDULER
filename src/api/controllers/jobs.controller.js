@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { enqueueJob } from '../../services/queue.service.js';
+import { enqueueJob , jobQueue } from '../../services/queue.service.js';
 
 const JOB_COLUMNS = `
   id,
@@ -227,7 +227,6 @@ export async function getDeadLetterJobsHandler(request, reply) {
   try {
     const { tenantId, role } = request;
 
-    //  Admin check
     if (role !== 'ADMIN') {
       return reply.code(403).send({
         success: false,
@@ -235,21 +234,19 @@ export async function getDeadLetterJobsHandler(request, reply) {
       });
     }
 
-    //  Pagination
     const page = parseInt(request.query.page) || 1;
     const limit = parseInt(request.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    //  Query DEAD jobs
     const result = await request.server.db.query(
-      `SELECT * FROM jobs
+      `SELECT ${JOB_COLUMNS}
+       FROM jobs
        WHERE tenant_id = $1 AND status = 'DEAD'
        ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
       [tenantId, limit, offset]
     );
 
-    //  Total count
     const countResult = await request.server.db.query(
       `SELECT COUNT(*) FROM jobs
        WHERE tenant_id = $1 AND status = 'DEAD'`,
@@ -283,9 +280,11 @@ export async function retryJobHandler(request, reply) {
     const { id } = request.params;
     const { tenantId } = request;
 
-    // 1. Fetch job (tenant-safe)
+    // 1. Fetch job
     const result = await request.server.db.query(
-      `SELECT * FROM jobs WHERE id = $1 AND tenant_id = $2`,
+      `SELECT ${JOB_COLUMNS}, tenant_id
+       FROM jobs
+       WHERE id = $1 AND tenant_id = $2`,
       [id, tenantId]
     );
 
@@ -298,7 +297,7 @@ export async function retryJobHandler(request, reply) {
       });
     }
 
-    // 2. Only DEAD jobs allowed
+    // 2. Only DEAD jobs
     if (job.status !== 'DEAD') {
       return reply.code(400).send({
         success: false,
@@ -306,28 +305,37 @@ export async function retryJobHandler(request, reply) {
       });
     }
 
-    // 3. Reset job in DB
+
+    // 3. Reset DB
     await request.server.db.query(
       `UPDATE jobs
        SET status = 'PENDING',
-           retry_count = 0,
-           updated_at = NOW()
+           retry_count = 0
        WHERE id = $1`,
       [id]
     );
 
-    // 4. Re-enqueue using YOUR queue
-    await jobQueue.add(
-      job.type,          // job name
-      job.payload,       // payload (already JSON from PG)
-      {
-        dbJobId: job.id    // keeps traceability (important)
-      }
-    );
+    //  4. REMOVE EXISTING BULLMQ JOB (CRITICAL FIX)
+    const existingJob = await jobQueue.getJob(job.id);
+    if (existingJob) {
+      await existingJob.remove();
+    }
 
-    // 5. Return updated job
+    // 5. Re-enqueue
+    await enqueueJob({
+      id: job.id,
+      type: job.type,
+      payload: job.payload,
+      priority: job.priority,
+      scheduled_at: job.scheduled_at,
+      tenant_id: job.tenant_id
+    });
+
+    // 6. Return updated job
     const updated = await request.server.db.query(
-      `SELECT * FROM jobs WHERE id = $1`,
+      `SELECT ${JOB_COLUMNS}
+       FROM jobs
+       WHERE id = $1`,
       [id]
     );
 
