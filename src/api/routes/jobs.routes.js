@@ -5,11 +5,12 @@ import { createJobHandler,
   getDeadLetterJobsHandler,
   retryJobHandler
  } from '../controllers/jobs.controller.js';
+ import { rateLimitMiddleware } from '../../middlewares/rateLimit.middleware.js';
 
 async function jobsRoutes(fastify, options) {
   fastify.post(
     '/jobs',
-    { preHandler: fastify.authMiddleware },
+    { preHandler: [fastify.authMiddleware, rateLimitMiddleware] },
     createJobHandler
   );
 
