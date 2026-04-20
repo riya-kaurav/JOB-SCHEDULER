@@ -4,6 +4,7 @@ import pool from "../db/index.js";
 
 import { emailHandler } from "./handlers/email.handler.js";
 import { reportHandler } from "./handlers/report.handler.js";
+import { startScheduler } from "./scheduler.js";
 
 const handlers = {
   email: emailHandler,
@@ -108,5 +109,7 @@ worker.on("failed", async (job) => {
     console.error("Final failure update error:", e.message);
   }
 });
+
+startScheduler();
 
 console.log("🚀 Worker running...");
