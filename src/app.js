@@ -7,7 +7,7 @@ import fastifyJwt from '@fastify/jwt';
 import  redis from './cache/redis.js';
 import jobsRoutes from './api/routes/jobs.routes.js';
 import pool from './db/index.js'
-
+import schedulesRoutes from './api/routes/schedule.routes.js';
 
 
 const fastify = Fastify({ logger: true });
@@ -26,6 +26,7 @@ fastify.register(fastifyJwt, {
 
 fastify.register(authRoutes, { prefix: '/api/v1/auth' });
 fastify.register(jobsRoutes, { prefix: '/api/v1' });
+fastify.register(schedulesRoutes, { prefix: '/api/v1' });
 
 
 fastify.get('/', async (request, reply) => {

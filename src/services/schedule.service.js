@@ -1,5 +1,19 @@
 import parser from 'cron-parser';
 
+
+// compute next run time from cron experession and current date
+export async function getNextRunTime(cronExpr, currentDate = new Date()) {
+  try {
+    const interval = parser.parseExpression(cronExpr, {
+      currentDate
+    });
+
+    return interval.next().toDate();
+  } catch (err) {
+    throw new Error('Invalid cron expression');
+  }
+}
+
 /**
  * Load and lock due schedules
  */
