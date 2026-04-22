@@ -1,17 +1,14 @@
 import parser from 'cron-parser';
 
+/**
+ * Compute next run time from cron expression
+ */
+export function getNextRunTime(cronExpr, currentDate = new Date()) {
+  const interval = parser.parseExpression(cronExpr, {
+    currentDate
+  });
 
-// compute next run time from cron experession and current date
-export async function getNextRunTime(cronExpr, currentDate = new Date()) {
-  try {
-    const interval = parser.parseExpression(cronExpr, {
-      currentDate
-    });
-
-    return interval.next().toDate();
-  } catch (err) {
-    throw new Error('Invalid cron expression');
-  }
+  return interval.next().toDate(); // MUST return Date
 }
 
 /**
@@ -52,7 +49,7 @@ export async function createJobRecord(client, schedule) {
       schedule.job_type,
       schedule.job_type,
       schedule.payload,
-      schedule.next_run
+      schedule.next_run // already a Date
     ]
   );
 
@@ -60,7 +57,7 @@ export async function createJobRecord(client, schedule) {
 }
 
 /**
- * Update schedule after run
+ * Update schedule after execution
  */
 export async function updateScheduleAfterRun(client, schedule) {
   let nextRun;

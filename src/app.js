@@ -26,7 +26,7 @@ fastify.register(fastifyJwt, {
 
 fastify.register(authRoutes, { prefix: '/api/v1/auth' });
 fastify.register(jobsRoutes, { prefix: '/api/v1' });
-fastify.register(schedulesRoutes, { prefix: '/api/v1' });
+fastify.register(schedulesRoutes);
 
 
 fastify.get('/', async (request, reply) => {
