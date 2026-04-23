@@ -76,6 +76,11 @@ export async function createJobHandler(request, reply) {
       message: 'Internal Server Error'
     });
   }
+
+  request.log.info(
+  { tenantId: request.tenantId },
+  "Creating job"
+);
 }
 
 // GET JOBS (LIST)

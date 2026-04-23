@@ -2,7 +2,7 @@ import redis from '../cache/redis.js';
 import pool from '../db/index.js';
 
 export async function rateLimitMiddleware(request, reply) {
-    console.log("RATE LIMIT MIDDLEWARE HIT");
+   request.log.warn("Rate limit hit");
   try {
     const tenantId = request.tenantId;
 

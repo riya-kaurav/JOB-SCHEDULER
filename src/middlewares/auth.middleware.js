@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import { query } from '../db/index.js' // adjust path if needed
 
 async function authMiddleware(request, reply) {
-  
+   
   try {
     // 1. Check API key first
     const apiKey = request.headers['x-api-key']
@@ -23,6 +23,7 @@ async function authMiddleware(request, reply) {
       const keyRecord = result.rows[0]
 
       if (!keyRecord) {
+        request.log.warn('Invalid API key attempt');
         return reply.code(401).send({ error: 'Invalid API key' })
       }
 
@@ -34,8 +35,19 @@ async function authMiddleware(request, reply) {
 
       // Attach tenantId to request
       request.tenantId = keyRecord.tenant_id
-
-      return
+      // logger
+      request.log = request.log.child({
+        tenantId: request.tenantId,
+        authType: 'apiKey'
+      });
+    request.log.info(
+  {
+    tenantId: request.tenantId,
+    authType: request.role ? 'jwt' : 'apiKey'
+  },
+  "AUTH SUCCESS"
+);
+      return;
     }
 
     // 2. Check JWT
@@ -56,19 +68,33 @@ async function authMiddleware(request, reply) {
         request.tenantId = decoded.tenantId;
         request.role = decoded.role;
 
-               return
+        //  enrich logger AFTER decode
+        request.log = request.log.child({
+          tenantId: request.tenantId,
+          userId: request.userId,
+          authType: 'jwt'
+        });
+
+               return;
 
       } catch (err) {
+        request.log.warn({ err }, 'JWT verification failed');
         return reply.code(401).send({ error: 'Invalid or expired token' })
       }
     }
 
     // 3. No auth provided
+    request.log.warn('No authentication provided');
     return reply.code(401).send({ error: 'Unauthorized' })
 
   } catch (err) {
-    return reply.code(401).send({ error: 'Authentication failed' })
+    request.log.error({ err }, 'Auth middleware error');
+  return reply.code(500).send({ error: 'Internal server error' });
   }
+  request.log.info(
+  { tenantId: request.tenantId },
+  "Auth successful"
+);
 }
 
 export default authMiddleware
