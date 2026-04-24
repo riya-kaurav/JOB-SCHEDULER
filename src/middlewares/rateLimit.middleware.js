@@ -10,7 +10,7 @@ export async function rateLimitMiddleware(request, reply) {
       return reply.code(401).send({ error: 'Unauthorized' });
     }
 
-    //  Build date string (UTC)
+    //  Build date string for daily tracking
     const now = new Date();
     const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
 
