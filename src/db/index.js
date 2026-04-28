@@ -5,17 +5,17 @@ import pg from 'pg';
 
 const { Pool } = pg;
 
-// const pool = new Pool({
-//     connectionString: process.env.DATABASE_URL,
-// });
-
 const pool = new Pool({
-    host: 'localhost',
-    port: 5432,
-    database: 'jobscheduler',
-    user: 'postgres',
-    password: 'db1234',
+    connectionString: process.env.DATABASE_URL,
 });
+
+// const pool = new Pool({
+//     host: 'localhost',
+//     port: 5432,
+//     database: 'jobscheduler',
+//     user: 'postgres',
+//     password: 'db1234',
+// });
 
 pool.on('connect' , () => {
     console.log('Connected to the database');
