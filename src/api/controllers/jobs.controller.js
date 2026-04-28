@@ -77,10 +77,7 @@ export async function createJobHandler(request, reply) {
     });
   }
 
-  request.log.info(
-  { tenantId: request.tenantId },
-  "Creating job"
-);
+ 
 }
 
 // GET JOBS (LIST)

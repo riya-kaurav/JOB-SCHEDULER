@@ -79,7 +79,7 @@ export async function updateScheduleAfterRun(client, schedule) {
       [schedule.id]
     );
 
-    throw new Error(`Invalid cron for schedule ${schedule.id}`);
+    throw new Error(`Invalid cron for schedule ${schedule.id}`, { cause: err });
   }
 
   await client.query(

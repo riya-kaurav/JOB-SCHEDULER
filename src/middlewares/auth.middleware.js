@@ -91,10 +91,7 @@ async function authMiddleware(request, reply) {
     request.log.error({ err }, 'Auth middleware error');
   return reply.code(500).send({ error: 'Internal server error' });
   }
-  request.log.info(
-  { tenantId: request.tenantId },
-  "Auth successful"
-);
+ 
 }
 
 export default authMiddleware

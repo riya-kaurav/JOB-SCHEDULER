@@ -20,6 +20,7 @@
   "main": "src/app.js",
   "type": "module",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "eslint": "^10.1.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.1"
@@ -27,7 +28,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint src/",
+    "test": "echo \"No tests yet\" && exit 0"
   },
   "keywords": [],
   "author": "",

@@ -11,6 +11,7 @@ import  redis from './cache/redis.js';
 import jobsRoutes from './api/routes/jobs.routes.js';
 import pool from './db/index.js'
 import schedulesRoutes from './api/routes/schedule.routes.js';
+import jobQueue from './services/queue.service.js';
 
 
 const fastify = Fastify({ 
