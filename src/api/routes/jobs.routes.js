@@ -5,26 +5,27 @@ import { createJobHandler,
   getDeadLetterJobsHandler,
   retryJobHandler
  } from '../controllers/jobs.controller.js';
+ import authMiddleware from '../../middlewares/auth.middleware.js';
  import { rateLimitMiddleware } from '../../middlewares/rateLimit.middleware.js';
 
 async function jobsRoutes(fastify, options) {
   fastify.post(
     '/jobs',
-    { preHandler: [fastify.authMiddleware, rateLimitMiddleware] },
+    { preHandler: [authMiddleware, rateLimitMiddleware] },
     createJobHandler
   );
 
   // List jobs
   fastify.get(
     "/jobs",
-    { preHandler: fastify.authMiddleware },
+    { preHandler: authMiddleware },
     getJobsHandler
   );
 
   // Dead letter jobs
   fastify.get(
     "/jobs/dead-letter",
-    { preHandler: fastify.authMiddleware},
+    { preHandler: authMiddleware},
     getDeadLetterJobsHandler
   );
 
@@ -32,7 +33,7 @@ async function jobsRoutes(fastify, options) {
   // Job detail
   fastify.get(
     "/jobs/:id",
-    { preHandler: fastify.authMiddleware },
+    { preHandler: authMiddleware },
     getJobByIdHandler
   );
    
@@ -40,14 +41,14 @@ async function jobsRoutes(fastify, options) {
 
   fastify.post(
     "/jobs/:id/retry",
-    { preHandler: fastify.authMiddleware },
+    { preHandler: authMiddleware },
     retryJobHandler
   );
   
   // Cancel job
   fastify.delete(
     "/jobs/:id",
-    { preHandler: fastify.authMiddleware },
+    { preHandler: authMiddleware },
     cancelJobHandler
   );
 

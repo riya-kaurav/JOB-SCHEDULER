@@ -1,8 +1,10 @@
 
-import fastify from './app.js';
+import {buildApp} from './app.js';
 import authMiddleware from './middlewares/auth.middleware.js';
 
+
 const PORT = process.env.PORT || 3000;
+const fastify = buildApp();
 fastify.decorate('authMiddleware', authMiddleware);
 
 const start = async () => {

@@ -11,11 +11,11 @@ import  redis from './cache/redis.js';
 import jobsRoutes from './api/routes/jobs.routes.js';
 import pool from './db/index.js'
 import schedulesRoutes from './api/routes/schedule.routes.js';
-import jobQueue from './services/queue.service.js';
+import {jobQueue} from './services/queue.service.js';
 
-
+export function buildApp({ testMode = false} = {}) {
 const fastify = Fastify({ 
-  loggerInstance: logger,  
+  logger: testMode? false : {instance: logger},  
   genReqId: () => crypto.randomUUID()
  });
 
@@ -135,8 +135,5 @@ fastify.register(jobsRoutes, { prefix: '/api/v1' });
 fastify.register(schedulesRoutes);
 
 
-fastify.get('/', async (request, reply) => {
-  return { message: 'Hello world' };
-});
-
-export default fastify;
+return fastify;
+}
