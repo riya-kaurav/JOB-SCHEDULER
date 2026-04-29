@@ -67,16 +67,16 @@ export async function registerHandler(request, reply) {
     
 
     // Unique email error
-    if (error.code === '23505') {
+    if (err.code === '23505') {
       return reply.status(409).send({
         error: 'Email already exists',
       });
     }
 
-    console.error(error);
+    console.error(err);
 
     return reply.status(400).send({
-      error: error.message,
+      error: err.message,
     });
 
   } finally {
