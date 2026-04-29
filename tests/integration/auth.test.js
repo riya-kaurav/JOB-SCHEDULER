@@ -40,7 +40,7 @@ describe('Auth API', () => {
         password: 'password123',
         tenantName: 'Test Org'
       });
-      console.log(res.body);
+      
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('user');
@@ -53,7 +53,7 @@ describe('Auth API', () => {
       password: 'password123',
       tenantName: 'Test Org'
     };
-     
+    
     // First insert
     await request(app.server).post('/api/v1/auth/register').send(payload);
 
@@ -61,6 +61,9 @@ describe('Auth API', () => {
     const res = await request(app.server)
       .post('/api/v1/auth/register')
       .send(payload);
+
+      console.log(res.status, JSON.stringify(res.body))
+     
 
     expect(res.status).toBe(409);
   });
