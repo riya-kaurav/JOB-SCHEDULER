@@ -9,7 +9,7 @@ let app;
 // Clean database before each test
 async function cleanDb() {
   await pool.query(`
-    TRUNCATE TABLE users, tenants
+    TRUNCATE TABLE job_executions, jobs, api_keys, users, tenants
     RESTART IDENTITY CASCADE;
   `);
 }
@@ -53,7 +53,7 @@ describe('Auth API', () => {
       password: 'password123',
       tenantName: 'Test Org'
     };
-
+      console.log(res.body)
     // First insert
     await request(app.server).post('/api/v1/auth/register').send(payload);
 
