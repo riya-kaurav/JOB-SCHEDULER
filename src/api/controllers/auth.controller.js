@@ -2,6 +2,7 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import pool  from '../../db/index.js';
 import crypto from 'crypto';
+import { error } from 'console';
 
 const registerSchema = z.object({
   tenantName: z.string().min(3),
@@ -63,17 +64,17 @@ export async function registerHandler(request, reply) {
       });
     }
 
-    console.error(err);
+    console.error(error);
 
     // Unique email error
-    if (err.code === '23505') {
+    if (error.code === '23505') {
       return reply.status(409).send({
         error: 'Email already exists',
       });
     }
 
     return reply.status(400).send({
-      error: err.message,
+      error: error.message,
     });
 
   } finally {
@@ -136,18 +137,18 @@ export async function loginHandler(request , reply) {
       refreshToken,
     });
   }
-    catch (err) {
-      if (err instanceof z.ZodError) {
+    catch (error) {
+      if (error instanceof z.ZodError) {
         return reply.status(400).send({
           error: 'Validation failed',
-          details: err.errors
+          details: error.errors
         });
       }
 
-      console.error(err);
+      console.error(error);
 
       return reply.status(400).send({
-        error: err.message,
+        error: error.message,
       });
     }
     
@@ -193,8 +194,8 @@ export async function createApiKey(request, reply) {
       warning: 'Store this key securely. It will not be shown again.'
     });
 
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
 
     return reply.status(500).send({
       error: 'Failed to create API key'
@@ -236,7 +237,7 @@ export async function logoutHandler(request, reply) {
       message: 'Logged out successfully'
     });
 
-  } catch (err) {
+  } catch (_error) {
     return reply.code(401).send({
       error: 'Invalid or expired refresh token'
     });
@@ -300,7 +301,7 @@ export async function refreshHandler(request, reply) {
       refreshToken: newRefreshToken
     });
 
-  } catch (err) {
+  } catch (_error) {
     return reply.code(401).send({
       error: 'Invalid or expired refresh token'
     });

@@ -6,7 +6,7 @@ import {
 
 import authMiddleware from '../../middlewares/auth.middleware.js';
 
-async function schedulesRoutes(fastify, options) {
+async function schedulesRoutes(fastify, _options) {
   
   // Create schedule
   fastify.post(

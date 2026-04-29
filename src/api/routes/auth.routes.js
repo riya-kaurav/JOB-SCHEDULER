@@ -5,7 +5,7 @@ import { logoutHandler} from '../controllers/auth.controller.js';
 import { refreshHandler} from '../controllers/auth.controller.js';
 import authMiddleware from '../../middlewares/auth.middleware.js';
 
-async function authRoutes(fastify , options) {
+async function authRoutes(fastify , _options) {
     fastify.post('/register' , registerHandler);
     fastify.post('/login' , loginHandler);
     fastify.post('/api-keys',

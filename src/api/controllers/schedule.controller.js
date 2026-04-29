@@ -30,7 +30,7 @@ export async function createSchedule(request, reply) {
     let nextRun;
     try {
       nextRun = getNextRunTime(cron_expr);
-    } catch (err) {
+    } catch (_err) {
       return reply.code(400).send({
         success: false,
         message: "Invalid cron expression"
@@ -157,7 +157,7 @@ export async function updateSchedule(request, reply) {
     if (cron_expr !== undefined) {
       try {
         nextRun = getNextRunTime(cron_expr);
-      } catch (err) {
+      } catch (_err) {
         return reply.code(400).send({
           success: false,
           message: "Invalid cron expression"

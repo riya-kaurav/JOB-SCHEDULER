@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import Fastify from 'fastify';
-import authMiddleware from './middlewares/auth.middleware.js';
 import authRoutes from './api/routes/auth.routes.js';
 import fastifyJwt from '@fastify/jwt';
 import logger from './utils/logger.js';

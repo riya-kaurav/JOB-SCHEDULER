@@ -8,7 +8,7 @@ import { createJobHandler,
  import authMiddleware from '../../middlewares/auth.middleware.js';
  import { rateLimitMiddleware } from '../../middlewares/rateLimit.middleware.js';
 
-async function jobsRoutes(fastify, options) {
+async function jobsRoutes(fastify, _options) {
   fastify.post(
     '/jobs',
     { preHandler: [authMiddleware, rateLimitMiddleware] },
