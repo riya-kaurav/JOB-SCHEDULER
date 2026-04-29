@@ -53,7 +53,7 @@ describe('Auth API', () => {
       password: 'password123',
       tenantName: 'Test Org'
     };
-      console.log(res.body)
+     
     // First insert
     await request(app.server).post('/api/v1/auth/register').send(payload);
 
@@ -64,6 +64,7 @@ describe('Auth API', () => {
 
     expect(res.status).toBe(409);
   });
+   
 
   test('login: valid credentials → tokens', async () => {
     const payload = {
