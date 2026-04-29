@@ -64,7 +64,7 @@ export async function registerHandler(request, reply) {
       });
     }
 
-    console.error(error);
+    
 
     // Unique email error
     if (error.code === '23505') {
@@ -72,6 +72,8 @@ export async function registerHandler(request, reply) {
         error: 'Email already exists',
       });
     }
+
+    console.error(error);
 
     return reply.status(400).send({
       error: error.message,
