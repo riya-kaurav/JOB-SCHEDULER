@@ -1,4 +1,4 @@
-# JobQueue — Distributed Job Scheduling & Processing API
+# Distributed Job Scheduler & Task Manager
 
 A multi-tenant job queue and scheduling system built with Fastify, BullMQ, PostgreSQL, and Redis. It lets teams submit background jobs, schedule recurring tasks via cron, and monitor execution — all behind a secure dual-auth API.
 
