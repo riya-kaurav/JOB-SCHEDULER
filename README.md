@@ -98,8 +98,8 @@ created_at                  job_schedules
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-org/jobqueue.git
-cd jobqueue
+git clone https://github.com/riya-kaurav/JOB-SCHEDULER
+cd job-scheduler
 ```
 
 ### 2. Install dependencies
@@ -118,20 +118,14 @@ cp .env.example .env
 Key variables:
 
 ```env
-NODE_ENV=development
-PORT=3000
+PORT=
+NODE_ENV=
+DATABASE_URL=
+JWT_SECRET=
+JWT_EXPIRES_IN=
+JWT_REFRESH_EXPIRES_IN=
+REDIS_URL=
 
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=jobqueue
-DB_USER=postgres
-DB_PASSWORD=postgres
-
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-JWT_SECRET=your-secret-here
-JWT_REFRESH_SECRET=your-refresh-secret-here
 ```
 
 ### 4. Start infrastructure
@@ -158,11 +152,6 @@ node src/server.js
 node src/worker/worker.js
 ```
 
-### 8. (Optional) Start the scheduler
-
-```bash
-node src/worker/scheduler.js
-```
 
 ### Full stack via Docker
 
@@ -179,11 +168,14 @@ API will be available at `http://localhost` (Nginx → API:3000).
 ## Running Tests
 
 ```bash
-# Ensure test DB is running
+# Start test database
 docker compose up -d postgres redis
 
+# Create test database
+docker exec -it job-scheduler-postgres-1 psql -U postgres -c "CREATE DATABASE jobscheduler_test;"
+
 # Run migrations against test DB
-NODE_ENV=test node src/db/migrate.js
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/jobscheduler_test node src/db/migrate.js
 
 # Run tests
 npm test
