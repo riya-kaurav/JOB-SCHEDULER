@@ -8,12 +8,8 @@ A multi-tenant job queue and scheduling system built with Fastify, BullMQ, Postg
 
 ## Architecture
 
-```
    <img width="2807" height="2236" alt="image" src="https://github.com/user-attachments/assets/43cb7fe7-1ab0-4011-bf6e-ec49265e82f4" />
                      
-```
-
-
 ---
 
 ## Tech Stack
