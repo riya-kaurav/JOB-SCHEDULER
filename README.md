@@ -9,68 +9,10 @@ A multi-tenant job queue and scheduling system built with Fastify, BullMQ, Postg
 ## Architecture
 
 ```
-                        ┌─────────────────────────────────────────────┐
-                        │                  Docker Network              │
-                        │                                              │
-  Client (HTTP)         │  ┌─────────┐     ┌───────────────────────┐  │
- ──────────────────────►│  │  Nginx  │────►│     Fastify API        │  │
-  JWT / API Key         │  │ :80/:443│     │       :3000            │  │
-                        │  └─────────┘     │                        │  │
-                        │                  │  Auth Middleware        │  │
-                        │                  │  ├─ JWT (userId+role)   │  │
-                        │                  │  └─ API Key (tenantId)  │  │
-                        │                  │                        │  │
-                        │                  │  Routes                │  │
-                        │                  │  ├─ /auth              │  │
-                        │                  │  ├─ /jobs              │  │
-                        │                  │  ├─ /schedules         │  │
-                        │                  │  ├─ /health            │  │
-                        │                  │  └─ /metrics           │  │
-                        │                  └────────┬──────────────┘  │
-                        │                           │                  │
-                        │              ┌────────────┼────────────┐     │
-                        │              │            │            │     │
-                        │              ▼            ▼            │     │
-                        │       ┌────────────┐ ┌─────────┐      │     │
-                        │       │  BullMQ    │ │  Redis  │      │     │
-                        │       │  Queue     │ │  :6379  │      │     │
-                        │       │            │ │         │      │     │
-                        │       │ ├─ Jobs    │ │ ├─ JWT  │      │     │
-                        │       │ ├─ Retry   │ │ │  BL   │      │     │
-                        │       │ └─ DLQ     │ │ ├─ Rate │      │     │
-                        │       └─────┬──────┘ │ │  Limit│      │     │
-                        │             │        │ └─ Tenant│     │     │
-                        │             │        │   Cache  │     │     │
-                        │             ▼        └─────────┘      │     │
-                        │       ┌────────────┐                  │     │
-                        │       │   Worker   │                  │     │
-                        │       │  Process   │                  │     │
-                        │       │            │                  │     │
-                        │       │ ├─ email   │                  │     │
-                        │       │ └─ report  │                  │     │
-                        │       └─────┬──────┘                  │     │
-                        │             │                          │     │
-                        │             ▼                          │     │
-                        │       ┌────────────┐                  │     │
-                        │       │ PostgreSQL  │◄─────────────────┘     │
-                        │       │   :5432    │                        │
-                        │       │            │                        │
-                        │       │ tenants    │                        │
-                        │       │ users      │                        │
-                        │       │ api_keys   │                        │
-                        │       │ jobs       │                        │
-                        │       │ job_exec.  │                        │
-                        │       │ schedules  │                        │
-                        │       └────────────┘                        │
-                        │                                              │
-                        │  ┌────────────────────┐                     │
-                        │  │  node-cron          │                     │
-                        │  │  Scheduler          │                     │
-                        │  │  (ticks every min)  │                     │
-                        │  └────────────────────┘                     │
-                        └─────────────────────────────────────────────┘
+   <img width="2807" height="2236" alt="image" src="https://github.com/user-attachments/assets/43cb7fe7-1ab0-4011-bf6e-ec49265e82f4" />
+                     
 ```
-<img width="2807" height="2236" alt="image" src="https://github.com/user-attachments/assets/7ec201ac-26f9-4927-bdab-1d23ca1743e9" />
+
 
 ---
 
