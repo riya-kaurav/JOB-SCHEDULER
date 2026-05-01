@@ -70,7 +70,7 @@ A multi-tenant job queue and scheduling system built with Fastify, BullMQ, Postg
                         │  └────────────────────┘                     │
                         └─────────────────────────────────────────────┘
 ```
-
+[View on Eraser![](https://app.eraser.io/workspace/XjjzSV9Rs3ILigDAGjA9/preview?diagram=ns7McMqjJSBdwwFg74hi&type=embed)](https://app.eraser.io/workspace/XjjzSV9Rs3ILigDAGjA9?diagram=ns7McMqjJSBdwwFg74hi)
 ---
 
 ## Tech Stack
