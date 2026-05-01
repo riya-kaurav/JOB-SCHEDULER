@@ -1,6 +1,6 @@
 # Distributed Job Scheduler & Task Manager
 
-A multi-tenant job queue and scheduling system built with Fastify, BullMQ, PostgreSQL, and Redis. It lets teams submit background jobs, schedule recurring tasks via cron, and monitor execution — all behind a secure dual-auth API.
+A multi-tenant job queue and scheduling system built with Fastify, BullMQ, PostgreSQL, and Redis. It lets teams submit background jobs, schedule recurring tasks via cron, and monitor execution all behind a secure dual-auth API.
 
 **Ideal for:** SaaS platforms that need reliable async task processing (email delivery, report generation, data pipelines) with tenant isolation and observability built in.
 
