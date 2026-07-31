@@ -11,6 +11,8 @@ import jobsRoutes from './api/routes/jobs.routes.js';
 import pool from './db/index.js'
 import schedulesRoutes from './api/routes/schedule.routes.js';
 import {jobQueue} from './services/queue.service.js';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 
 export function buildApp({ testMode = false} = {}) {
 const fastify = Fastify({ 
@@ -128,6 +130,35 @@ fastify.register(fastifyJwt, {
 });
 
 
+ fastify.register(swagger, {
+  openapi: {
+    info: {
+      title: 'Distributed Job Scheduler',
+      description: 'Multi-tenant distributed job scheduling system',
+      version: '1.0.0'
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer'
+        },
+        apiKey: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'x-api-key'
+        }
+      }
+    }
+  }
+});
+
+fastify.register(swaggerUi, {
+  routePrefix: '/docs',
+  uiConfig: {
+    docExpansion: 'list'
+  }
+});
 
 fastify.register(authRoutes, { prefix: '/api/v1/auth' });
 fastify.register(jobsRoutes, { prefix: '/api/v1' });
