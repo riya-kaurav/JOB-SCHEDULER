@@ -51,6 +51,7 @@ A multi-tenant job queue and scheduling system built with Fastify, BullMQ, Postg
 
 ## Database Schema
 
+```mermaid
 erDiagram
     TENANTS ||--o{ USERS : has
     TENANTS ||--o{ API_KEYS : owns
@@ -120,7 +121,7 @@ erDiagram
         timestamp last_run
         timestamp created_at
     }
----
+```
 
 ## How to Run Locally
 
