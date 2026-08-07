@@ -51,41 +51,75 @@ A multi-tenant job queue and scheduling system built with Fastify, BullMQ, Postg
 
 ## Database Schema
 
-```
-tenants          users              api_keys
-────────         ──────────         ────────────
-id               id                 id
-name             tenant_id ──►      tenant_id ──►
-plan             email              key_hash
-daily_job_limit  password_hash      name
-created_at       role               last_used_at
-                 created_at         created_at
+erDiagram
+    TENANTS ||--o{ USERS : has
+    TENANTS ||--o{ API_KEYS : owns
+    TENANTS ||--o{ JOBS : creates
+    TENANTS ||--o{ JOB_SCHEDULES : schedules
+    JOBS ||--o{ JOB_EXECUTIONS : executes
 
-jobs                        job_executions
-────────────────────         ──────────────────────
-id                           id
-tenant_id ──►                job_id ──►
-type                         attempt_number
-payload (jsonb)              status
-status                       started_at
-priority                     completed_at
-attempts_made                error_message
-max_attempts                 created_at
-scheduled_at
-created_at                  job_schedules
-                             ──────────────────────
-                             id
-                             tenant_id ──►
-                             name
-                             cron_expression
-                             job_type
-                             payload (jsonb)
-                             is_active
-                             next_run
-                             last_run
-                             created_at
-```
+    TENANTS {
+        int id PK
+        string name
+        string plan
+        int daily_job_limit
+        timestamp created_at
+    }
 
+    USERS {
+        int id PK
+        int tenant_id FK
+        string email
+        string password_hash
+        string role
+        timestamp created_at
+    }
+
+    API_KEYS {
+        int id PK
+        int tenant_id FK
+        string key_hash
+        string name
+        timestamp last_used_at
+        timestamp created_at
+    }
+
+    JOBS {
+        int id PK
+        int tenant_id FK
+        string type
+        jsonb payload
+        string status
+        int priority
+        int attempts_made
+        int max_attempts
+        timestamp scheduled_at
+        timestamp created_at
+    }
+
+    JOB_EXECUTIONS {
+        int id PK
+        int job_id FK
+        int attempt_number
+        string status
+        timestamp started_at
+        timestamp completed_at
+        string error_message
+        timestamp created_at
+    }
+
+    JOB_SCHEDULES {
+        int id PK
+        int tenant_id FK
+        string name
+        string cron_expression
+        string job_type
+        jsonb payload
+        bool is_active
+        timestamp next_run
+        timestamp last_run
+        timestamp created_at
+    }
 ---
 
 ## How to Run Locally
